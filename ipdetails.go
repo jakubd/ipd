@@ -3,7 +3,10 @@ package ipd
 import (
 	"fmt"
 	"net"
+	"os"
 	"path"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -41,11 +44,58 @@ type IPInfo struct {
 	CountryName string // Country name
 }
 
+// IsFileInMaxmindDir will check if the givenFile is in the Maxmind dir and report back.
+// If false will output to errs tream
+func IsFileInMaxmindDir(givenFile string) bool {
+	if _, err := os.Stat(filepath.Join(GetMaxmindDirectory(), givenFile)); os.IsNotExist(err) {
+		_ = fmt.Errorf("can not find neccesary file '%s' in dir %s", givenFile, GetMaxmindDirectory())
+		return false
+	}
+	return true
+}
+
+// CheckMaxmindEnvironment will check all neccesary files in the environment needed to function.
+func CheckMaxmindEnvironment() bool {
+	if runtime.GOOS != "linux" {
+		_ = fmt.Errorf("unsupported OS: %s", runtime.GOOS)
+		return false
+	}
+
+	if _, err := os.Stat(GetMaxmindDirectory()); os.IsNotExist(err) {
+		_ = fmt.Errorf("can not find maxmind directory: %s", GetMaxmindDirectory())
+		return false
+	}
+
+	if !IsFileInMaxmindDir("GeoLite2-ASN.mmdb") {
+		return false
+	}
+
+	if !IsFileInMaxmindDir("GeoLite2-ASN.mmdb") {
+		return false
+	}
+
+	return true
+}
+
+// GetMaxmindDirectory will return the expected directory for the maxmind db files according to OS
+func GetMaxmindDirectory() string {
+	switch runtime.GOOS {
+	case "darwin":
+		panic("MacOS is not supported")
+	case "windows":
+		panic("Windows is not supported")
+	case "linux":
+		return "/var/lib/GeoIP/"
+	default:
+		return "/var/lib/GeoIP/"
+	}
+}
+
 // OpenMaxmindDb will open the givenDbName from the default or givenDirectory and return the Reader object
 func OpenMaxmindDb(givenDbName string, givenDirectory ...string) (*geoip2.Reader, error) {
 	var maxmindDirectory string
 	if len(givenDirectory) == 0 {
-		maxmindDirectory = "/var/lib/GeoIP/"
+		maxmindDirectory = GetMaxmindDirectory()
 	} else {
 		maxmindDirectory = givenDirectory[0]
 	}
@@ -73,16 +123,30 @@ func Lookup(givenIpStr string) (IPInfo, error) {
 
 	asnDb, err := OpenMaxmindDb("GeoLite2-ASN.mmdb")
 	if err != nil {
-		return parseFailed, err
+		panic(fmt.Sprintf("No maxmind db found in: %s.  "+
+			"Please download from https://dev.maxmind.com/geoip/geoip2/geolite2/ and place in dir.",
+			GetMaxmindDirectory()))
 	}
 
 	countryDb, err := OpenMaxmindDb("GeoLite2-Country.mmdb")
 	if err != nil {
-		return parseFailed, err
+		panic(fmt.Sprintf("No maxmind db found in: %s.  "+
+			"Please download from https://dev.maxmind.com/geoip/geoip2/geolite2/ and place in dir.",
+			GetMaxmindDirectory()))
 	}
 
-	defer asnDb.Close()
-	defer countryDb.Close()
+	defer func(asnDb *geoip2.Reader) {
+		err := asnDb.Close()
+		if err != nil {
+			panic("Could not close ASN db.")
+		}
+	}(asnDb)
+	defer func(countryDb *geoip2.Reader) {
+		err := countryDb.Close()
+		if err != nil {
+			panic("Could not close country db.")
+		}
+	}(countryDb)
 
 	ip := net.ParseIP(givenIpStr)
 

@@ -23,10 +23,12 @@ $ cat ips.txt | ipd pipe
 
 # Setup/Install
 
-Currently, only Linux is supported. 
+Currently, only Linux with GeoLite databases is supported. 
 
 You need to download the maxmind databases yourself by setting up an account and downloading the libraries 
 yourself from [Maxmind](https://dev.maxmind.com/geoip/geoip2/geolite2/)
+
+Neccesary files are: `GeoLite2-ASN.mmdb` and `GeoLite2-ASN.mmdb`
 
 It is recommended to manage the databases with [geoipupdate](https://github.com/maxmind/geoipupdate) it is currently in
 [this contrib debian repos](https://packages.debian.org/buster/geoipupdate) so you can install with:
@@ -35,7 +37,7 @@ It is recommended to manage the databases with [geoipupdate](https://github.com/
 sudo apt install geoipupdate
 ```
 
-You need to have both the country and ASN Geolite databases.
+You should put the databases in `/var/lib/GeoIP` directory as both `ipd` and `geoipupdate` use this directory. 
 
 # License
 
