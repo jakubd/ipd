@@ -118,22 +118,25 @@ func GetMaxmindDirFromConfig() string {
 
 // GetMaxmindDirectory will return the expected directory for the maxmind db files according to OS
 func GetMaxmindDirectory() string {
-
 	var fromConfig = GetMaxmindDirFromConfig()
 	if len(fromConfig) > 1 {
 		return fromConfig
 	}
 
+	var defaultDir = "/var/lib/GeoIP/"
 	switch runtime.GOOS {
 	case "darwin":
-		panic("MacOS is not supported")
+		fmt.Println("MacOS is not supported")
+		os.Exit(1)
 	case "windows":
-		panic("Windows is not supported")
+		fmt.Println("Windows is not supported")
+		os.Exit(1)
 	case "linux":
-		return "/var/lib/GeoIP/"
+		return defaultDir
 	default:
-		return "/var/lib/GeoIP/"
+		return defaultDir
 	}
+	return defaultDir
 }
 
 // OpenMaxmindDb will open the givenDbName from the default or givenDirectory and return the Reader object
