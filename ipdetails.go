@@ -34,10 +34,14 @@ func OutputLookup(givenInput string, intel bool, resolve ...bool) {
 	// also strip commas from as name since it will be confusing to read the delimit points.
 	var asnameForOutput = strings.ReplaceAll(ipinfo.ASName, ",", "")
 
-	record = []string{ipinfo.Input, ipForOutput, ipinfo.CountryCode, asnameForOutput, ipinfo.ASNumStr, status}
+	// if we have an ip and resolve is off just outputting the input is fine, otherwise show both the ip and inpu
+	if resolve[0] {
+		record = []string{ipinfo.Input, ipForOutput, ipinfo.CountryCode, asnameForOutput, ipinfo.ASNumStr, status}
+	} else {
+		record = []string{ipinfo.Input, ipinfo.CountryCode, asnameForOutput, ipinfo.ASNumStr, status}
+	}
 
 	if intel {
-
 		intelrecord := []string{
 			" https://censys.io/ipv4/" + ipForOutput,
 			" https://www.shodan.io/host/" + ipForOutput,
@@ -124,7 +128,6 @@ func OpenMaxmindDb(givenDbName string, givenDirectory ...string) (*geoip2.Reader
 }
 
 // SimpleResolveDomain will lookup a domain and return an IP if possible
-// TODO: cleanup
 func SimpleResolveDomain(givenInput string) (string, error) {
 	ips, err := net.LookupIP(givenInput)
 	if err != nil || len(ips) < 1 {

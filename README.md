@@ -8,7 +8,7 @@ Lookup one IP:
 
 ```shell
 $ ipd 8.8.8.8
-8.8.8.8,US,GOOGLE,AS15169,good_ip
+8.8.8.8, US, GOOGLE, AS15169, good_ip
 ```
 
 Lookup list of IPs
@@ -16,9 +16,26 @@ Lookup list of IPs
 Via pipe:
 
 ```shell
-$ cat ips.txt | ipd pipe 
-8.8.8.8,US,GOOGLE,AS15169,good_ip
-8.8.4.4,US,GOOGLE,AS15169,good_ip
+ $ cat ips.txt | ipd pipe
+8.8.8.8, US, GOOGLE, AS15169, good_ip
+8.8.4.4, US, GOOGLE, AS15169, good_ip
+1.1.1.1, AU, CLOUDFLARENET, AS13335, good_ip
+```
+
+Can optionally show links to common intel services with `-i` flag:
+
+```shell
+ $ ipd -i 8.8.8.8        
+8.8.8.8, US, GOOGLE, AS15169, good_ip,  https://censys.io/ipv4/8.8.8.8,  https://www.shodan.io/host/8.8.8.8,  https://bgp.he.net/AS15169
+```
+
+Can take both domain/URL input if the `-r` flag is set.
+
+```shell
+ $ cat ips.txt | ipd pipe -r
+https://freebsd.org, 96.47.72.84, US, NYINTERNET, AS11403, good_ip
+one.one.one.one, 1.1.1.1, AU, CLOUDFLARENET, AS13335, good_ip
+8.8.4.4, 8.8.4.4, US, GOOGLE, AS15169, good_ip
 ```
 
 # Setup/Install
