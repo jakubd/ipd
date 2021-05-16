@@ -26,8 +26,8 @@ func OutputLookup(givenInput string, intel bool, resolve ...bool) {
 
 	if intel {
 		intelrecord := []string{
-			" https://censys.io/ipv4/" + ipinfo.Input + " ",
-			" https://www.shodan.io/host/" + ipinfo.Input + " ",
+			" https://censys.io/ipv4/" + ipinfo.IP.String() + " ",
+			" https://www.shodan.io/host/" + ipinfo.IP.String() + " ",
 			" https://bgp.he.net/" + ipinfo.ASNumStr + " ",
 		}
 		record = append(record, intelrecord...)

@@ -42,7 +42,7 @@ func LookupPipe() {
 		if runeInput[j] == '\n' {
 			if len(thisLine) > 1 {
 				thisLine = strings.TrimSuffix(thisLine, "\n")
-				ipd.OutputLookup(thisLine, false, resolveDomains)
+				ipd.OutputLookup(thisLine, showIntel, resolveDomains)
 				thisLine = ""
 			}
 		}
@@ -51,4 +51,5 @@ func LookupPipe() {
 
 func init() {
 	pipeCmd.Flags().BoolVarP(&resolveDomains, "resolve", "r", false, "resolve domains and urls")
+	pipeCmd.Flags().BoolVarP(&showIntel, "intel", "i", false, "show links to common intel services")
 }

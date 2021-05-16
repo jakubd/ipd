@@ -6,6 +6,7 @@ import (
 )
 
 var resolveDomains = false
+var showIntel = false
 
 var rootCmd = &cobra.Command{
 	Use:   "ip <any ip>",
@@ -18,7 +19,7 @@ var rootCmd = &cobra.Command{
 }
 
 func LookupOne(ip string) {
-	ipd.OutputLookup(ip, false, resolveDomains)
+	ipd.OutputLookup(ip, showIntel, resolveDomains)
 }
 
 func Execute() error {
@@ -28,5 +29,6 @@ func Execute() error {
 
 func init() {
 	rootCmd.Flags().BoolVarP(&resolveDomains, "resolve", "r", false, "resolve domains and urls")
+	rootCmd.Flags().BoolVarP(&showIntel, "intel", "i", false, "show links to common intel services")
 	rootCmd.AddCommand(pipeCmd)
 }
