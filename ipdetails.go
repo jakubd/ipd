@@ -123,9 +123,15 @@ func SimpleResolveDomain(givenInput string) (string, error) {
 	return "", nil
 }
 
+// CleanupInput does some light sanitization of the givenInput in the Lookup Func.
+func CleanupInput(givenInput string) string {
+	return strings.ToLower(strings.TrimSpace(givenInput))
+}
+
 // Lookup will look up the givenIpStr string and return a fully parsed IPInfo struct
 // if resolve is set to true then input can be domain or url
 func Lookup(givenInput string, resolve ...bool) (IPInfo, error) {
+	givenInput = CleanupInput(givenInput)
 
 	parseFailed := IPInfo{
 		Input:       givenInput,

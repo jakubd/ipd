@@ -1,7 +1,6 @@
 package ipd
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +9,14 @@ import (
 func basicTestDb(t *testing.T, givenDbName string) {
 	db, err := OpenMaxmindDb(givenDbName)
 	assert.NoError(t, err)
-	db.Close()
+	err = db.Close()
+	if err != nil {
+		panic("maxmind db close error")
+	}
+}
+
+func TestCleanupInput(t *testing.T) {
+	assert.Equal(t, CleanupInput("    asdf    "), "asdf")
 }
 
 func TestOpenMaxmindDb(t *testing.T) {
@@ -34,10 +40,10 @@ func TestResolve(t *testing.T) {
 }
 
 func TestLookup(t *testing.T) {
-	testIp := "81.2.69.142"
+	testIp := "81.2.69.142 "
 	info, err := Lookup(testIp)
 	assert.NoError(t, err)
-	assert.Equal(t, info.Input, testIp)
+	assert.Equal(t, info.Input, "81.2.69.142")
 	assert.Equal(t, info.ASNum, 20712)
 	assert.Equal(t, info.ASName, "Andrews & Arnold Ltd")
 	assert.Equal(t, info.CountryCode, "GB")
@@ -45,7 +51,7 @@ func TestLookup(t *testing.T) {
 
 	info, err = Lookup(testIp, true)
 	assert.NoError(t, err)
-	assert.Equal(t, info.Input, testIp)
+	assert.Equal(t, info.Input, "81.2.69.142")
 	assert.Equal(t, info.ASNum, 20712)
 	assert.Equal(t, info.ASName, "Andrews & Arnold Ltd")
 	assert.Equal(t, info.CountryCode, "GB")
@@ -79,6 +85,5 @@ func TestLookup(t *testing.T) {
 	domainInput := "one.one.one.one"
 	domainInfo, err := Lookup(domainInput, true)
 	assert.NoError(t, err)
-	fmt.Println(domainInfo)
-
+	assert.Contains(t, []string{"1.1.1.1", "1.0.0.1"}, domainInfo.IP.String())
 }
