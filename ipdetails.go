@@ -3,6 +3,7 @@ package ipd
 import (
 	"fmt"
 	"github.com/asaskevich/govalidator"
+	"github.com/spf13/viper"
 	"net"
 	"net/url"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/oschwald/geoip2-golang"
 )
 
+// OutputLookup executes and displays a single lookup to screen.
 func OutputLookup(givenInput string, intel bool, resolve ...bool) {
 	ipinfo, err := Lookup(givenInput, resolve[0])
 	status := "good_ip"
@@ -96,8 +98,32 @@ func CheckMaxmindEnvironment() bool {
 	return true
 }
 
+// GetMaxmindDirFromConfig will return the directory from the config if it exists otherwise
+func GetMaxmindDirFromConfig() string {
+	viper.SetConfigName("ipd")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("$HOME/.config")
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		return ""
+	}
+
+	if len(viper.GetString("maxmind_dir")) > 1 {
+		return viper.GetString("maxmind_dir")
+	}
+
+	return ""
+}
+
 // GetMaxmindDirectory will return the expected directory for the maxmind db files according to OS
 func GetMaxmindDirectory() string {
+
+	var fromConfig = GetMaxmindDirFromConfig()
+	if len(fromConfig) > 1 {
+		return fromConfig
+	}
+
 	switch runtime.GOOS {
 	case "darwin":
 		panic("MacOS is not supported")
@@ -166,16 +192,18 @@ func Lookup(givenInput string, resolve ...bool) (IPInfo, error) {
 
 	asnDb, err := OpenMaxmindDb("GeoLite2-ASN.mmdb")
 	if err != nil {
-		panic(fmt.Sprintf("No maxmind db found in: %s.  "+
-			"Please download from https://dev.maxmind.com/geoip/geoip2/geolite2/ and place in dir.",
-			GetMaxmindDirectory()))
+		fmt.Printf("No maxmind db found in: %s.  "+
+			"\nPlease download from https://dev.maxmind.com/geoip/geoip2/geolite2/ and place in dir.",
+			GetMaxmindDirectory())
+		os.Exit(1)
 	}
 
 	countryDb, err := OpenMaxmindDb("GeoLite2-Country.mmdb")
 	if err != nil {
-		panic(fmt.Sprintf("No maxmind db found in: %s.  "+
-			"Please download from https://dev.maxmind.com/geoip/geoip2/geolite2/ and place in dir.",
-			GetMaxmindDirectory()))
+		fmt.Printf("No maxmind db found in: %s.  "+
+			"\nPlease download from https://dev.maxmind.com/geoip/geoip2/geolite2/ and place in dir.",
+			GetMaxmindDirectory())
+		os.Exit(1)
 	}
 
 	defer func(asnDb *geoip2.Reader) {

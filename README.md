@@ -54,7 +54,12 @@ It is recommended to manage the databases with [geoipupdate](https://github.com/
 sudo apt install geoipupdate
 ```
 
-You should put the databases in `/var/lib/GeoIP` directory as both `ipd` and `geoipupdate` use this directory. 
+You should put the databases in `/var/lib/GeoIP` directory as both `ipd` and `geoipupdate` use this directory.
+If your GeoIP databases are in a different folder create a config in `$home/.config/ipd.yaml` with the setting:
+
+```yaml
+maxmind_dir: /var/lib/where-ever-your-GeoIP-folder-is
+```
 
 # License
 
