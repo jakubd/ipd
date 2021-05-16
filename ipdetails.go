@@ -22,12 +22,21 @@ func OutputLookup(givenInput string, intel bool, resolve ...bool) {
 		status = "bad_ip"
 	}
 	var record []string
-	record = []string{ipinfo.Input, ipinfo.CountryCode, ipinfo.ASName, ipinfo.ASNumStr, status}
+
+	var ipstr = ""
+	if ipinfo.IP == nil {
+		ipstr = ""
+	} else {
+		ipstr = ipinfo.IP.String()
+	}
+
+	record = []string{ipinfo.Input, ipstr, ipinfo.CountryCode, ipinfo.ASName, ipinfo.ASNumStr, status}
 
 	if intel {
+
 		intelrecord := []string{
-			" https://censys.io/ipv4/" + ipinfo.IP.String() + " ",
-			" https://www.shodan.io/host/" + ipinfo.IP.String() + " ",
+			" https://censys.io/ipv4/" + ipstr + " ",
+			" https://www.shodan.io/host/" + ipstr + " ",
 			" https://bgp.he.net/" + ipinfo.ASNumStr + " ",
 		}
 		record = append(record, intelrecord...)
