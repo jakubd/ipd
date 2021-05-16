@@ -23,25 +23,29 @@ func OutputLookup(givenInput string, intel bool, resolve ...bool) {
 	}
 	var record []string
 
-	var ipstr = ""
+	// make sure we have an ip string otherwise blank the string
+	var ipForOutput = ""
 	if ipinfo.IP == nil {
-		ipstr = ""
+		ipForOutput = ""
 	} else {
-		ipstr = ipinfo.IP.String()
+		ipForOutput = ipinfo.IP.String()
 	}
 
-	record = []string{ipinfo.Input, ipstr, ipinfo.CountryCode, ipinfo.ASName, ipinfo.ASNumStr, status}
+	// also strip commas from as name since it will be confusing to read the delimit points.
+	var asnameForOutput = strings.ReplaceAll(ipinfo.ASName, ",", "")
+
+	record = []string{ipinfo.Input, ipForOutput, ipinfo.CountryCode, asnameForOutput, ipinfo.ASNumStr, status}
 
 	if intel {
 
 		intelrecord := []string{
-			" https://censys.io/ipv4/" + ipstr + " ",
-			" https://www.shodan.io/host/" + ipstr + " ",
-			" https://bgp.he.net/" + ipinfo.ASNumStr + " ",
+			" https://censys.io/ipv4/" + ipForOutput,
+			" https://www.shodan.io/host/" + ipForOutput,
+			" https://bgp.he.net/" + ipinfo.ASNumStr,
 		}
 		record = append(record, intelrecord...)
 	}
-	fmt.Println(strings.Join(record, ","))
+	fmt.Println(strings.Join(record, ", "))
 }
 
 // IPInfo is the struct of enriched geoip info
