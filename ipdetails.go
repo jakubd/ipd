@@ -15,8 +15,8 @@ import (
 	"github.com/oschwald/geoip2-golang"
 )
 
-func OutputLookup(givenInput string, intel bool) {
-	ipinfo, err := Lookup(givenInput)
+func OutputLookup(givenInput string, intel bool, resolve ...bool) {
+	ipinfo, err := Lookup(givenInput, resolve[0])
 	status := "good_ip"
 	if err != nil {
 		status = "bad_ip"

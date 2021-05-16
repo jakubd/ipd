@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var resolveDomains = false
+
 var rootCmd = &cobra.Command{
 	Use:   "ip <any ip>",
 	Short: "get info on a single ip",
@@ -16,7 +18,7 @@ var rootCmd = &cobra.Command{
 }
 
 func LookupOne(ip string) {
-	ipd.OutputLookup(ip, false)
+	ipd.OutputLookup(ip, false, resolveDomains)
 }
 
 func Execute() error {
@@ -25,5 +27,6 @@ func Execute() error {
 }
 
 func init() {
+	rootCmd.Flags().BoolVarP(&resolveDomains, "resolve", "r", false, "resolve domains and urls")
 	rootCmd.AddCommand(pipeCmd)
 }

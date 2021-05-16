@@ -42,9 +42,13 @@ func LookupPipe() {
 		if runeInput[j] == '\n' {
 			if len(thisLine) > 1 {
 				thisLine = strings.TrimSuffix(thisLine, "\n")
-				ipd.OutputLookup(thisLine, false)
+				ipd.OutputLookup(thisLine, false, resolveDomains)
 				thisLine = ""
 			}
 		}
 	}
+}
+
+func init() {
+	pipeCmd.Flags().BoolVarP(&resolveDomains, "resolve", "r", false, "resolve domains and urls")
 }
