@@ -2,7 +2,9 @@ package ipd
 
 import (
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"net"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,12 +22,12 @@ func OutputLookup(givenInput string, intel bool) {
 		status = "bad_ip"
 	}
 	var record []string
-	record = []string{ipinfo.IPStr, ipinfo.CountryCode, ipinfo.ASName, ipinfo.ASNumStr, status}
+	record = []string{ipinfo.Input, ipinfo.CountryCode, ipinfo.ASName, ipinfo.ASNumStr, status}
 
 	if intel {
 		intelrecord := []string{
-			" https://censys.io/ipv4/" + ipinfo.IPStr + " ",
-			" https://www.shodan.io/host/" + ipinfo.IPStr + " ",
+			" https://censys.io/ipv4/" + ipinfo.Input + " ",
+			" https://www.shodan.io/host/" + ipinfo.Input + " ",
 			" https://bgp.he.net/" + ipinfo.ASNumStr + " ",
 		}
 		record = append(record, intelrecord...)
@@ -35,7 +37,7 @@ func OutputLookup(givenInput string, intel bool) {
 
 // IPInfo is the struct of enriched geoip info
 type IPInfo struct {
-	IPStr       string // given IP String or input
+	Input       string // given input string for a lookup
 	IP          net.IP // net.IP representation of the IP string or input
 	ASNum       int    // Autonomous system number as int
 	ASNumStr    string // Autonomous system number as string prefixed with "AS"
@@ -108,17 +110,36 @@ func OpenMaxmindDb(givenDbName string, givenDirectory ...string) (*geoip2.Reader
 	return maxmindDb, nil
 }
 
+// SimpleResolveDomain will lookup a domain and return an IP if possible
+// TODO: cleanup
+func SimpleResolveDomain(givenInput string) (string, error) {
+	ips, err := net.LookupIP(givenInput)
+	if err != nil || len(ips) < 1 {
+		return "", err
+	}
+	for _, ip := range ips {
+		return ip.String(), nil
+	}
+	return "", nil
+}
+
 // Lookup will look up the givenIpStr string and return a fully parsed IPInfo struct
-func Lookup(givenIpStr string) (IPInfo, error) {
+// if resolve is set to true then input can be domain or url
+func Lookup(givenInput string, resolve ...bool) (IPInfo, error) {
 
 	parseFailed := IPInfo{
-		IPStr:       givenIpStr,
+		Input:       givenInput,
 		IP:          nil,
 		ASNum:       -1,
 		ASNumStr:    "AS0",
 		ASName:      "",
 		CountryCode: "",
 		CountryName: "",
+	}
+
+	DoResolutions := false
+	if len(resolve) > 0 && resolve[0] {
+		DoResolutions = true
 	}
 
 	asnDb, err := OpenMaxmindDb("GeoLite2-ASN.mmdb")
@@ -148,7 +169,31 @@ func Lookup(givenIpStr string) (IPInfo, error) {
 		}
 	}(countryDb)
 
-	ip := net.ParseIP(givenIpStr)
+	var ip net.IP
+	if DoResolutions {
+		var answer = ""
+		if govalidator.IsIP(givenInput) {
+			answer = givenInput
+		} else if govalidator.IsDNSName(givenInput) {
+			answer, err = SimpleResolveDomain(givenInput)
+		} else {
+			// assuming it is a URL and parse that out
+			parsed, err := url.Parse(givenInput)
+			if err != nil {
+				return parseFailed, err
+			}
+			answer, err = SimpleResolveDomain(parsed.Host)
+		}
+
+		if err != nil || len(answer) < 1 {
+			return parseFailed, err
+		}
+
+		ip = net.ParseIP(answer)
+
+	} else {
+		ip = net.ParseIP(givenInput)
+	}
 
 	asnRecord, err := asnDb.ASN(ip)
 	if err != nil {
@@ -161,7 +206,7 @@ func Lookup(givenIpStr string) (IPInfo, error) {
 	}
 
 	return IPInfo{
-		IPStr:       givenIpStr,
+		Input:       givenInput,
 		IP:          ip,
 		ASNum:       int(asnRecord.AutonomousSystemNumber),
 		ASNumStr:    "AS" + strconv.Itoa(int(asnRecord.AutonomousSystemNumber)),
