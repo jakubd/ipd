@@ -19,7 +19,6 @@ clean:
 		$(GOCLEAN)
 		rm -f $(BINARY_NAME)
 run:
-		$(GOBUILD) -o $(BINARY_NAME) -v ./example
 		./$(BINARY_NAME)
 deps:
 		$(GOGETGETDEPS)
