@@ -124,10 +124,11 @@ func GetMaxmindDirectory() string {
 	}
 
 	var defaultDir = "/var/lib/GeoIP/"
+	var macDir = "/usr/local/var/GeoIP/"
+
 	switch runtime.GOOS {
 	case "darwin":
-		fmt.Println("MacOS is not supported")
-		os.Exit(1)
+		return macDir
 	case "windows":
 		fmt.Println("Windows is not supported")
 		os.Exit(1)
